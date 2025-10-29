@@ -99,6 +99,43 @@ resource "azurerm_container_app" "main" {
       image  = "mcr.microsoft.com/k8se/quickstart:latest"
       cpu    = 0.25
       memory = "0.5Gi"
+
+      # Startup Probe - checks if container has started successfully
+      # Runs only at startup, before other probes begin
+      startup_probe {
+        transport               = "HTTP"
+        port                    = 80
+        path                    = "/"
+        interval_seconds        = 5
+        timeout                 = 3
+        failure_count_threshold = 3
+        initial_delay           = 0
+      }
+
+      # Liveness Probe - checks if container is alive
+      # If it fails, the container will be restarted
+      liveness_probe {
+        transport               = "HTTP"
+        port                    = 80
+        path                    = "/"
+        interval_seconds        = 30
+        timeout                 = 5
+        failure_count_threshold = 3
+        initial_delay           = 10
+      }
+
+      # Readiness Probe - checks if container is ready to receive traffic
+      # If it fails, container is temporarily removed from load balancer
+      readiness_probe {
+        transport               = "HTTP"
+        port                    = 80
+        path                    = "/"
+        interval_seconds        = 10
+        timeout                 = 3
+        failure_count_threshold = 3
+        success_count_threshold = 1
+        initial_delay           = 5
+      }
     }
   }
 
